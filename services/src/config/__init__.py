@@ -19,6 +19,10 @@ class Config:
     def EXCHANGE_SECRET_KEY(self):
         return self.ENV["EXCHANGE_SECRET_KEY"]
 
+    @property
+    def WEBHOOK_URL(self):
+        return self.ENV["WEBHOOK_URL"]
+
     @cached_property
     def TEST_MODE(self):
         test_mode = self.ENV["TEST_MODE"]

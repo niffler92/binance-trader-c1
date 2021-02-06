@@ -26,7 +26,8 @@ define BUILD_SECRET
 	printf $1 > /tmp/k8s_secret/api_key; \
 	printf $2 > /tmp/k8s_secret/secret_key; \
 	printf $3 > /tmp/k8s_secret/test_mode; \
-	kubectl -n dev create secret generic market-secret --from-file=/tmp/k8s_secret/api_key --from-file=/tmp/k8s_secret/secret_key --from-file=/tmp/k8s_secret/test_mode; \
+	printf $4 > /tmp/k8s_secret/webhook_url; \
+	kubectl -n dev create secret generic market-secret --from-file=/tmp/k8s_secret/api_key --from-file=/tmp/k8s_secret/secret_key --from-file=/tmp/k8s_secret/test_mode --from-file=/tmp/k8s_secret/webhook_url; \
 	rm -rf /tmp/k8s_secret
 endef
 
@@ -50,7 +51,8 @@ ifeq ($(shell kubectl -n dev get secret market-secret 2> /dev/null),)
 	@read -p "EXCHANGE_API_KEY: " EXCHANGE_API_KEY; \
 	read -p "EXCHANGE_SECRET_KEY: " EXCHANGE_SECRET_KEY; \
 	read -p "TEST_MODE: " TEST_MODE; \
-	$(call BUILD_SECRET,$$EXCHANGE_API_KEY,$$EXCHANGE_SECRET_KEY,$$TEST_MODE)
+	read -p "WEBHOOK_URL: " WEBHOOK_URL; \
+	$(call BUILD_SECRET,$$EXCHANGE_API_KEY,$$EXCHANGE_SECRET_KEY,$$TEST_MODE,$$WEBHOOK_URL)
 endif
 	@echo
 

@@ -54,6 +54,11 @@ spec:
                 secretKeyRef:
                   name: market-secret
                   key: test_mode
+            - name: WEBHOOK_URL
+              valueFrom:
+                secretKeyRef:
+                  name: market-secret
+                  key: webhook_url
           volumeMounts:
             - name: svc-codes
               mountPath: "/app/src"

@@ -3,14 +3,10 @@ import requests
 from config import CFG
 
 
-URL = "<set url>"
-TEST_URL = "<set url>"
-
-
 class SlackHandler(logging.StreamHandler):
     def __init__(self):
         super(SlackHandler, self).__init__()
-        self.url = TEST_URL if CFG.TEST_MODE is True else URL
+        self.url = CFG.WEBHOOK_URL
 
     def emit(self, record):
         msg = self.format(record)
