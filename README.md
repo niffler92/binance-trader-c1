@@ -1,4 +1,6 @@
 # Binance Future Trader
+Binance future trader deals in multiple cryptocurrencies simultaneously. In default, the model predict 30min ahead, and trade every 1min.
+* Note: If want to predict other time periods, you can change lookahead_window variable to what you want to predict.
 
 ## Schema
 ![Schema](images/schema.png)
@@ -108,11 +110,14 @@
  - Use Dropout block as Combine(AlphaDropout, SpatialDropout)
    - Dropout not only for time-series, but also for channels.
 ### Performance
+#### Model performance
 ![Performance1](images/performance1.png)
 ![Performance2](images/performance2.png)
 ![Performance3](images/performance3.png)
-Backtesting setting
-`Commisions: "entry": 0.04%, "exit": 0.02% or 0.04%, "spread": 0.04%`
+
+#### Backtest performance
+The results below are after the commission was paid to the exchange.
+Backtesting setting `Commisions: {"entry": 0.04%, "exit": 0.02% | 0.04%, "spread": 0.04%}`
 ```
 trade_winning_ratio    0.690894
 trade_sharpe_ratio     2.100903
@@ -163,7 +168,7 @@ additional
 
 additional  
 :sparkles:`make svc_rm`: Delete only pods(containers)  
-:sparkles:`make reapply`: Update changes without delete.  
+:sparkles:`make svc_reapply`: Update changes without delete.  
 :sparkles:`make svc_delete`: Delete minikube. Clean-up way. If once delete, it takes time to re-run.  
 :sparkles:`make svc_pods`: Check status of pods.  
 :sparkles:`make svc_db_bash`: Enter database container.  
