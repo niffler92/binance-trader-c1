@@ -131,8 +131,8 @@ td_bash:
 	@kubectl -n dev exec -it $(shell $(POD_TD_NAME)) -- bash
 
 run_on_cluster: _mkdirs _build_ymls
-	scp -r $(shell pwd)/dockerfiles docker@192.168.39.186:/tmp/dockerfiles && \
-	ssh docker@192.168.39.186 'docker build /tmp/dockerfiles -t binance_trader_services:latest && docker pull postgres:latest'
+	scp -r $(shell pwd)/dockerfiles docker@kubernetes:/tmp/dockerfiles && \
+	ssh docker@kubernetes 'docker build /tmp/dockerfiles -t binance_trader_services:latest && docker pull postgres:latest'
 	@$(MAKE) _apply
 
 rm_on_cluster:
