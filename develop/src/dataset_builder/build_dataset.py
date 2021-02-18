@@ -62,16 +62,15 @@ class DatasetBuilder:
             .rename(columns={key: key + "_return(1320)" for key in OHLC})
         ).dropna()
 
-        madiv_1320m = (
-            (
-                rawdata_row[OHLC]
-                .rolling(1320)
-                .mean()
-                .rename(columns={key: key + "_madiv(1320)" for key in OHLC})
-            )
+        ma_1320m = (
+            (rawdata_row[OHLC].rolling(1320).mean())
             .dropna()
             .reindex(returns_1320m.index)
         )
+
+        madiv_1320m = (
+            (rawdata_row[OHLC].reindex(ma_1320m.index) - ma_1320m) / ma_1320m
+        ).rename(columns={key: key + "_madiv(1320)" for key in OHLC})
 
         returns_600m = (
             (
@@ -83,16 +82,15 @@ class DatasetBuilder:
             .reindex(returns_1320m.index)
         )
 
-        madiv_600m = (
-            (
-                rawdata_row[OHLC]
-                .rolling(600)
-                .mean()
-                .rename(columns={key: key + "_madiv(600)" for key in OHLC})
-            )
+        ma_600m = (
+            (rawdata_row[OHLC].rolling(600).mean())
             .dropna()
             .reindex(returns_1320m.index)
         )
+
+        madiv_600m = (
+            (rawdata_row[OHLC].reindex(ma_600m.index) - ma_600m) / ma_600m
+        ).rename(columns={key: key + "_madiv(600)" for key in OHLC})
 
         returns_240m = (
             (
@@ -104,16 +102,15 @@ class DatasetBuilder:
             .reindex(returns_1320m.index)
         )
 
-        madiv_240m = (
-            (
-                rawdata_row[OHLC]
-                .rolling(240)
-                .mean()
-                .rename(columns={key: key + "_madiv(240)" for key in OHLC})
-            )
+        ma_240m = (
+            (rawdata_row[OHLC].rolling(240).mean())
             .dropna()
             .reindex(returns_1320m.index)
         )
+
+        madiv_240m = (
+            (rawdata_row[OHLC].reindex(ma_240m.index) - ma_240m) / ma_240m
+        ).rename(columns={key: key + "_madiv(240)" for key in OHLC})
 
         returns_120m = (
             (
@@ -125,16 +122,15 @@ class DatasetBuilder:
             .reindex(returns_1320m.index)
         )
 
-        madiv_120m = (
-            (
-                rawdata_row[OHLC]
-                .rolling(120)
-                .mean()
-                .rename(columns={key: key + "_madiv(120)" for key in OHLC})
-            )
+        ma_120m = (
+            (rawdata_row[OHLC].rolling(120).mean())
             .dropna()
             .reindex(returns_1320m.index)
         )
+
+        madiv_120m = (
+            (rawdata_row[OHLC].reindex(ma_120m.index) - ma_120m) / ma_120m
+        ).rename(columns={key: key + "_madiv(120)" for key in OHLC})
 
         returns_1m = (
             (
