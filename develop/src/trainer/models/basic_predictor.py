@@ -37,7 +37,7 @@ MODEL_CONFIG = {
     "lookback_window": 120,
     "batch_size": 512,
     "lr": 0.0001,
-    "epochs": 15,
+    "epochs": 10,
     "print_epoch": 1,
     "print_iter": 50,
     "save_epoch": 1,
