@@ -160,7 +160,7 @@ additional
  - EXP_NAME: If you set variable of exp_name when model train, you should give.
  - REPORT_PREFIX: If you set varialbe of prefix when model review, you should give.
  - REPORT_BASE_CURRENCY: Currently only USDT is acceptable. just skip.
- - REPORT_ID: `You should set this, which parameter set is best on model reviews`
+ - REPORT_BEST_INDEX: `You must set this, dont use default value! set which reviewer was best on model reviews`
  - EXCHANGE_API_KEY: API_KEY of binance. You can set API_KEY of binance future test-net, when you want to check behavior in test-net.
  - EXCHANGE_SECRET_KEY: SECRET_KEY of binance. You can set SECRET_KEY of binance future test-net, when you want to check behavior in test-net.
  - TEST_MODE: Give True or False. Give False when test in test-net.

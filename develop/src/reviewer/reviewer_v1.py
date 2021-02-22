@@ -20,8 +20,8 @@ import fancytable as ft
 class ReviewerV1:
     dataset_dir: str = to_abs_path(__file__, "../../storage/dataset/dataset/v001/")
     exp_dir: str = to_abs_path(__file__, "../../storage/experiments/v001/")
-    reviewer_prefix: str = "v001"
-    grid_params: Union[str, Dict[str, List]] = "V1_SET1"
+    reviewer_prefix: str = "V1_CSET1"
+    grid_params: Union[str, Dict[str, List]] = "V1_CSET1"
     backtester_type: str = "BacktesterV1"
     exec_start: int = 0
     exec_end: int = None

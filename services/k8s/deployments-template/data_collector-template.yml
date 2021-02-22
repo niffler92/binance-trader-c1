@@ -37,8 +37,8 @@ spec:
               value: {{REPORT_PREFIX}}
             - name: REPORT_BASE_CURRENCY
               value: {{REPORT_BASE_CURRENCY}}
-            - name: REPORT_ID
-              value: {{REPORT_ID}}
+            - name: REPORT_BEST_INDEX
+              value: {{REPORT_BEST_INDEX}}
             - name: EXCHANGE_API_KEY
               valueFrom:
                 secretKeyRef:

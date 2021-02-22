@@ -64,7 +64,7 @@ class Config:
     @cached_property
     def REPORT_PARAMS(self):
         return load_json(
-            f"/app/dev/experiments/{self.ENV['EXP_NAME']}/reports/params_{self.ENV['REPORT_PREFIX']}_{self.ENV['REPORT_ID']}_{self.ENV['REPORT_BASE_CURRENCY']}.json"
+            f"/app/dev/experiments/{self.ENV['EXP_NAME']}/reports/params_{self.ENV['REPORT_PREFIX']}_{self.ENV['REPORT_BEST_INDEX']}_{self.ENV['REPORT_BASE_CURRENCY']}.json"
         )
 
     @cached_property
