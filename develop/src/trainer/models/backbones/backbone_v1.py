@@ -55,24 +55,30 @@ class BackboneV1(nn.Module):
         in_channels = out_channels
 
         blocks = []
-        for idx in range(n_blocks):
-
+        for _ in range(n_blocks - 1):
             blocks.append(
-                self._build_block(
-                    in_channels=in_channels,
-                    use_transition_block=True if idx != n_blocks - 1 else False,
-                )
+                self._build_block(in_channels=in_channels, use_transition_block=True,)
             )
 
             # mutate in_channels for next block
             in_channels = self._compute_out_channels(
-                in_channels=in_channels,
-                use_transition_block=True if idx != n_blocks - 1 else False,
+                in_channels=in_channels, use_transition_block=True,
             )
 
         self.blocks = nn.Sequential(*blocks)
+        self.embed = nn.Embedding(n_assets, in_channels)
 
-        # Last layers
+        # Build last block
+        in_channels = in_channels + 1
+        self.last_block = self._build_block(
+            in_channels=in_channels, use_transition_block=False,
+        )
+
+        in_channels = self._compute_out_channels(
+            in_channels=in_channels, use_transition_block=False,
+        )
+
+        # Build last layers
         self.norm = identity
         if normalization is not None:
             self.norm = NORMS[normalization.upper()](num_channels=in_channels)
@@ -80,7 +86,7 @@ class BackboneV1(nn.Module):
         self.act = getattr(acts, activation)
         self.global_avg_pool = nn.AdaptiveAvgPool1d(1)
 
-        self.embed = nn.Embedding(n_assets, in_channels)
+        self.last_embed = nn.Embedding(n_assets, in_channels)
         self.pred_fc = nn.Linear(in_channels, 2)
         self.last_sigmoid = nn.Sigmoid()
 
@@ -143,8 +149,13 @@ class BackboneV1(nn.Module):
     def forward(self, x, id):
         B, _, _ = x.size()
         out = self.blocks(self.first_conv(x))
+        out = torch.cat([out, torch.bmm(self.embed(id).unsqueeze(dim=1), out)], dim=1)
+
+        out = self.last_block(out)
         out = self.global_avg_pool(self.act(self.norm(out))).view(B, -1)
 
-        preds = self.pred_fc(out) + (out * self.embed(id)).sum(axis=-1, keepdim=True)
+        preds = self.pred_fc(out) + (out * self.last_embed(id)).sum(
+            axis=-1, keepdim=True
+        )
 
         return preds[:, 0], self.last_sigmoid(preds[:, 1])
