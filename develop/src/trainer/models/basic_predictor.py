@@ -116,7 +116,7 @@ class BasicPredictor:
             )
             self.optimizer = self._build_optimizer()
             self.criterion = self._build_criterion()
-            self.binary_cross_entropy = CRITERIONS["bce"]().to(self.device)
+            self.binary_criterion = CRITERIONS["bce"]().to(self.device)
 
             # Store params
             self._copy_dataset_artifacts()
