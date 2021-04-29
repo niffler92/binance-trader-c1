@@ -46,7 +46,7 @@ MODEL_CONFIG = {
     "load_strict": False,
     "model_name": "BackboneV1",
     "model_params": {
-        "in_channels": 84,
+        "in_channels": 86,
         "n_blocks": 5,
         "n_block_layers": 8,
         "growth_rate": 12,

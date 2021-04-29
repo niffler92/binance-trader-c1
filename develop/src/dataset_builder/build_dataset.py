@@ -1,6 +1,7 @@
 import os
 import gc
 import json
+import torch
 from glob import glob
 from typing import Optional, List
 import pandas as pd
@@ -32,13 +33,13 @@ class DatasetBuilder:
     # Defined in running code.
     # Need to give below parameters when build in trader
     tradable_coins: Optional[List] = None
-    feature_columns: Optional[List] = None
+    features_columns: Optional[List] = None
     feature_scaler: Optional[preprocessing.StandardScaler] = None
     label_scaler: Optional[preprocessing.StandardScaler] = None
 
     def build_rawdata(self, file_names, query_min_start_dt):
         def _load_rawdata_row(file_name):
-            rawdata = pd.read_parquet(file_name)[OHLC]
+            rawdata = pd.read_parquet(file_name)
             rawdata.index = pd.to_datetime(rawdata.index)
             rawdata = rawdata[query_min_start_dt:]
 
@@ -55,135 +56,180 @@ class DatasetBuilder:
 
         return rawdata[self.tradable_coins]
 
-    def _build_feature_by_rawdata_row(self, rawdata_row):
-        returns_1320m = (
-            rawdata_row[OHLC]
-            .pct_change(1320, fill_method=None)
-            .rename(columns={key: key + "_return(1320)" for key in OHLC})
-        ).dropna()
-
-        ma_1320m = (
-            (rawdata_row[OHLC].rolling(1320).mean())
-            .dropna()
-            .reindex(returns_1320m.index)
-        )
-
-        madiv_1320m = (
-            (rawdata_row[OHLC].reindex(ma_1320m.index) - ma_1320m) / ma_1320m
-        ).rename(columns={key: key + "_madiv(1320)" for key in OHLC})
-
-        returns_600m = (
-            (
+    def _build_feature_by_rawdata_row(self, rawdata_row, scaler_target=True):
+        if scaler_target is True:
+            returns_1320m = (
                 rawdata_row[OHLC]
-                .pct_change(600, fill_method=None)
-                .rename(columns={key: key + "_return(600)" for key in OHLC})
+                .pct_change(1320, fill_method=None)
+                .rename(columns={key: key + "_return(1320)" for key in OHLC})
+            ).dropna()
+
+            returns_600m = (
+                (
+                    rawdata_row[OHLC]
+                    .pct_change(600, fill_method=None)
+                    .rename(columns={key: key + "_return(600)" for key in OHLC})
+                )
+                .dropna()
+                .reindex(returns_1320m.index)
             )
-            .dropna()
-            .reindex(returns_1320m.index)
-        )
 
-        ma_600m = (
-            (rawdata_row[OHLC].rolling(600).mean())
-            .dropna()
-            .reindex(returns_1320m.index)
-        )
-
-        madiv_600m = (
-            (rawdata_row[OHLC].reindex(ma_600m.index) - ma_600m) / ma_600m
-        ).rename(columns={key: key + "_madiv(600)" for key in OHLC})
-
-        returns_240m = (
-            (
-                rawdata_row[OHLC]
-                .pct_change(240, fill_method=None)
-                .rename(columns={key: key + "_return(240)" for key in OHLC})
+            returns_240m = (
+                (
+                    rawdata_row[OHLC]
+                    .pct_change(240, fill_method=None)
+                    .rename(columns={key: key + "_return(240)" for key in OHLC})
+                )
+                .dropna()
+                .reindex(returns_1320m.index)
             )
-            .dropna()
-            .reindex(returns_1320m.index)
-        )
 
-        ma_240m = (
-            (rawdata_row[OHLC].rolling(240).mean())
-            .dropna()
-            .reindex(returns_1320m.index)
-        )
-
-        madiv_240m = (
-            (rawdata_row[OHLC].reindex(ma_240m.index) - ma_240m) / ma_240m
-        ).rename(columns={key: key + "_madiv(240)" for key in OHLC})
-
-        returns_120m = (
-            (
-                rawdata_row[OHLC]
-                .pct_change(120, fill_method=None)
-                .rename(columns={key: key + "_return(120)" for key in OHLC})
+            returns_120m = (
+                (
+                    rawdata_row[OHLC]
+                    .pct_change(120, fill_method=None)
+                    .rename(columns={key: key + "_return(120)" for key in OHLC})
+                )
+                .dropna()
+                .reindex(returns_1320m.index)
             )
-            .dropna()
-            .reindex(returns_1320m.index)
-        )
 
-        ma_120m = (
-            (rawdata_row[OHLC].rolling(120).mean())
-            .dropna()
-            .reindex(returns_1320m.index)
-        )
+            returns_1m = (
+                (
+                    rawdata_row[OHLC]
+                    .pct_change(1, fill_method=None)
+                    .rename(columns={key: key + "_return(1)" for key in OHLC})
+                )
+                .dropna()
+                .reindex(returns_1320m.index)
+            )
 
-        madiv_120m = (
-            (rawdata_row[OHLC].reindex(ma_120m.index) - ma_120m) / ma_120m
-        ).rename(columns={key: key + "_madiv(120)" for key in OHLC})
-
-        returns_1m = (
-            (
-                rawdata_row[OHLC]
+            mean_volume_changes_120m = (
+                (rawdata_row["volume"] + 1e-7)
+                .rolling(120)
+                .mean()
                 .pct_change(1, fill_method=None)
-                .rename(columns={key: key + "_return(1)" for key in OHLC})
+                .dropna()
+                .reindex(returns_1320m.index)
+                .rename("mean_volume_changes_120m")
+            ).clip(-10, 10)
+
+            volume_changes_1m = (
+                (np.log(rawdata_row["volume"] + 1) + 1e-7)
+                .pct_change(1, fill_method=None)
+                .dropna()
+                .reindex(returns_1320m.index)
+                .rename("volume_changes_1m")
+            ).clip(-10, 10)
+
+            inner_changes = []
+            for column_pair in sorted(list(combinations(OHLC, 2))):
+                inner_changes.append(
+                    rawdata_row[list(column_pair)]
+                    .pct_change(1, axis=1, fill_method=None)[column_pair[-1]]
+                    .rename("_".join(column_pair) + "_change")
+                )
+
+            inner_changes = pd.concat(inner_changes, axis=1).reindex(
+                returns_1320m.index
             )
-            .dropna()
-            .reindex(returns_1320m.index)
-        )
 
-        inner_changes = []
-        for column_pair in sorted(list(combinations(OHLC, 2))):
-            inner_changes.append(
-                rawdata_row[list(column_pair)]
-                .pct_change(1, axis=1, fill_method=None)[column_pair[-1]]
-                .rename("_".join(column_pair) + "_change")
+            inner_changes_shift_120m = (
+                inner_changes.shift(120)
+                .dropna()
+                .reindex(returns_1320m.index)
+                .rename(
+                    columns={
+                        column: column + "_120m" for column in inner_changes.columns
+                    }
+                )
             )
 
-        inner_changes = pd.concat(inner_changes, axis=1).reindex(returns_1320m.index)
+            return (
+                pd.concat(
+                    [
+                        returns_1320m,
+                        returns_600m,
+                        returns_240m,
+                        returns_120m,
+                        returns_1m,
+                        inner_changes,
+                        inner_changes_shift_120m,
+                        mean_volume_changes_120m,
+                        volume_changes_1m,
+                    ],
+                    axis=1,
+                )
+                .sort_index()
+                .dropna()
+            )
 
-        feature = pd.concat(
-            [
-                returns_1320m,
-                madiv_1320m,
-                returns_600m,
-                madiv_600m,
-                returns_240m,
-                madiv_240m,
-                returns_120m,
-                madiv_120m,
-                returns_1m,
-                inner_changes,
-            ],
-            axis=1,
-        ).sort_index()
+        else:
+            volume_exists = (
+                ((rawdata_row["volume"] == 0) * 1.0)
+                .rename("volume_exists")
+                .to_frame()
+                .sort_index()
+            )
 
-        return feature
+            hour_to_8class = {idx: idx // 3 for idx in range(24)}
+            hours = pd.DataFrame(
+                torch.nn.functional.one_hot(
+                    torch.tensor(
+                        rawdata_row.index.hour.map(lambda x: hour_to_8class[x])
+                    ),
+                    num_classes=8,
+                )
+                .float()
+                .numpy(),
+                index=rawdata_row.index,
+            ).rename(columns={idx: f"8class_{idx}" for idx in range(8)})
+
+            return pd.concat([volume_exists, hours,], axis=1).sort_index().dropna()
 
     def build_features(self, rawdata):
         features = {}
+        class_features = {}
         for coin in tqdm(self.tradable_coins):
             features[coin] = self._build_feature_by_rawdata_row(
-                rawdata_row=rawdata[coin]
+                rawdata_row=rawdata[coin], scaler_target=True
+            )
+
+            class_features[coin] = self._build_feature_by_rawdata_row(
+                rawdata_row=rawdata[coin], scaler_target=False
             )
 
         features = pd.concat(features, axis=1).sort_index()[self.tradable_coins]
+        class_features = pd.concat(class_features, axis=1).sort_index()[
+            self.tradable_coins
+        ]
 
-        if self.feature_columns is None:
-            self.feature_columns = features.columns
-            return features
+        # reindex by common_index
+        common_index = features.index & class_features.index
+        features = features.reindex(common_index)
+        class_features = class_features.reindex(common_index)
 
-        return features[self.feature_columns]
+        if self.features_columns is None:
+            self.features_columns = sorted(
+                features.columns.tolist() + class_features.columns.tolist()
+            )
+
+        return (
+            features[
+                [
+                    feature
+                    for feature in self.features_columns
+                    if feature in features.columns
+                ]
+            ],
+            class_features[
+                [
+                    feature
+                    for feature in self.features_columns
+                    if feature in class_features.columns
+                ]
+            ],
+        )
 
     def build_scaler(self, data, scaler_type):
         scaler = getattr(preprocessing, scaler_type)()
@@ -322,11 +368,14 @@ class DatasetBuilder:
         gc.collect()
 
         # Build features
-        features = self.build_features(rawdata=rawdata)
+        features, class_features = self.build_features(rawdata=rawdata)
         self.feature_scaler = self.build_scaler(data=features, scaler_type=scaler_type)
         features = self.preprocess_features(
             features=features, winsorize_threshold=winsorize_threshold
         )
+        features = pd.concat([features, class_features], axis=1)[
+            self.features_columns
+        ].sort_index()
         gc.collect()
 
         # build labels

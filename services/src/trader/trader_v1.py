@@ -194,7 +194,7 @@ class TraderV1:
 
         self.dataset_builder = DatasetBuilder(
             tradable_coins=self.tradable_coins,
-            feature_columns=self.dataset_builder_params["features_columns"],
+            features_columns=self.dataset_builder_params["features_columns"],
             feature_scaler=feature_scaler,
             label_scaler=label_scaler,
         )
@@ -252,13 +252,15 @@ class TraderV1:
         logger.info(f"[O] Info: initialized order books")
 
     def _build_features(self, pricing):
-        features = self.dataset_builder.build_features(rawdata=pricing)
+        features, class_features = self.dataset_builder.build_features(rawdata=pricing)
         features = self.dataset_builder.preprocess_features(
             features=features,
             winsorize_threshold=self.dataset_builder_params["winsorize_threshold"],
         )
 
-        return features
+        return pd.concat([features, class_features], axis=1)[
+            self.dataset_builder_params["features_columns"]
+        ].sort_index()
 
     def _build_inputs(self, features):
         features, base_features = build_X_and_BX(
