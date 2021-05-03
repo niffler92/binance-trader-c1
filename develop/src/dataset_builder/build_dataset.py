@@ -27,6 +27,8 @@ CONFIG = {
 }
 OHLC = ["open", "high", "low", "close"]
 
+HOUR_TO_8CLASS = {idx: idx // 3 for idx in range(24)}
+
 
 @dataclass
 class DatasetBuilder:
@@ -34,6 +36,8 @@ class DatasetBuilder:
     # Need to give below parameters when build in trader
     tradable_coins: Optional[List] = None
     features_columns: Optional[List] = None
+    scaler_target_features_columns: Optional[List] = None
+    non_scaler_target_features_columns: Optional[List] = None
     feature_scaler: Optional[preprocessing.StandardScaler] = None
     label_scaler: Optional[preprocessing.StandardScaler] = None
 
@@ -172,11 +176,10 @@ class DatasetBuilder:
                 .sort_index()
             )
 
-            hour_to_8class = {idx: idx // 3 for idx in range(24)}
             hours = pd.DataFrame(
                 torch.nn.functional.one_hot(
                     torch.tensor(
-                        rawdata_row.index.hour.map(lambda x: hour_to_8class[x])
+                        rawdata_row.index.hour.map(lambda x: HOUR_TO_8CLASS[x])
                     ),
                     num_classes=8,
                 )
@@ -214,21 +217,23 @@ class DatasetBuilder:
                 features.columns.tolist() + class_features.columns.tolist()
             )
 
+        if self.scaler_target_features_columns is None:
+            self.scaler_target_features_columns = [
+                feature
+                for feature in self.features_columns
+                if feature in features.columns
+            ]
+
+        if self.non_scaler_target_features_columns is None:
+            self.non_scaler_target_features_columns = [
+                feature
+                for feature in self.features_columns
+                if feature in class_features.columns
+            ]
+
         return (
-            features[
-                [
-                    feature
-                    for feature in self.features_columns
-                    if feature in features.columns
-                ]
-            ],
-            class_features[
-                [
-                    feature
-                    for feature in self.features_columns
-                    if feature in class_features.columns
-                ]
-            ],
+            features[self.scaler_target_features_columns],
+            class_features[self.non_scaler_target_features_columns],
         )
 
     def build_scaler(self, data, scaler_type):
