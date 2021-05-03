@@ -69,51 +69,34 @@ class DatasetBuilder:
             ).dropna()
 
             returns_600m = (
-                (
-                    rawdata_row[OHLC]
-                    .pct_change(600, fill_method=None)
-                    .rename(columns={key: key + "_return(600)" for key in OHLC})
-                )
-                .dropna()
-                .reindex(returns_1320m.index)
-            )
+                rawdata_row[OHLC]
+                .pct_change(600, fill_method=None)
+                .rename(columns={key: key + "_return(600)" for key in OHLC})
+            ).reindex(returns_1320m.index)
 
             returns_240m = (
-                (
-                    rawdata_row[OHLC]
-                    .pct_change(240, fill_method=None)
-                    .rename(columns={key: key + "_return(240)" for key in OHLC})
-                )
-                .dropna()
-                .reindex(returns_1320m.index)
-            )
+                rawdata_row[OHLC]
+                .pct_change(240, fill_method=None)
+                .rename(columns={key: key + "_return(240)" for key in OHLC})
+            ).reindex(returns_1320m.index)
 
             returns_120m = (
-                (
-                    rawdata_row[OHLC]
-                    .pct_change(120, fill_method=None)
-                    .rename(columns={key: key + "_return(120)" for key in OHLC})
-                )
-                .dropna()
-                .reindex(returns_1320m.index)
-            )
+                rawdata_row[OHLC]
+                .pct_change(120, fill_method=None)
+                .rename(columns={key: key + "_return(120)" for key in OHLC})
+            ).reindex(returns_1320m.index)
 
             returns_1m = (
-                (
-                    rawdata_row[OHLC]
-                    .pct_change(1, fill_method=None)
-                    .rename(columns={key: key + "_return(1)" for key in OHLC})
-                )
-                .dropna()
-                .reindex(returns_1320m.index)
-            )
+                rawdata_row[OHLC]
+                .pct_change(1, fill_method=None)
+                .rename(columns={key: key + "_return(1)" for key in OHLC})
+            ).reindex(returns_1320m.index)
 
             mean_volume_changes_120m = (
                 (rawdata_row["volume"] + 1e-7)
                 .rolling(120)
                 .mean()
                 .pct_change(1, fill_method=None)
-                .dropna()
                 .reindex(returns_1320m.index)
                 .rename("mean_volume_changes_120m")
             ).clip(-10, 10)
@@ -121,7 +104,6 @@ class DatasetBuilder:
             volume_changes_1m = (
                 (np.log(rawdata_row["volume"] + 1) + 1e-7)
                 .pct_change(1, fill_method=None)
-                .dropna()
                 .reindex(returns_1320m.index)
                 .rename("volume_changes_1m")
             ).clip(-10, 10)
@@ -138,7 +120,6 @@ class DatasetBuilder:
 
             inner_changes_shift_120m = (
                 inner_changes.shift(120)
-                .dropna()
                 .reindex(returns_1320m.index)
                 .rename(
                     columns={
@@ -147,7 +128,7 @@ class DatasetBuilder:
                 )
             )
 
-            inner_changes = inner_changes.dropna().reindex(returns_1320m.index)
+            inner_changes = inner_changes.reindex(returns_1320m.index)
 
             return (
                 pd.concat(
@@ -169,12 +150,7 @@ class DatasetBuilder:
             )
 
         else:
-            volume_exists = (
-                ((rawdata_row["volume"] == 0) * 1.0)
-                .rename("volume_exists")
-                .to_frame()
-                .sort_index()
-            )
+            volume_exists = ((rawdata_row["volume"] == 0) * 1.0).rename("volume_exists")
 
             hours = pd.DataFrame(
                 torch.nn.functional.one_hot(
@@ -202,10 +178,8 @@ class DatasetBuilder:
                 rawdata_row=rawdata[coin], scaler_target=False
             )
 
-        features = pd.concat(features, axis=1).sort_index()[self.tradable_coins]
-        class_features = pd.concat(class_features, axis=1).sort_index()[
-            self.tradable_coins
-        ]
+        features = pd.concat(features, axis=1)[self.tradable_coins]
+        class_features = pd.concat(class_features, axis=1)[self.tradable_coins]
 
         # reindex by common_index
         common_index = features.index & class_features.index
