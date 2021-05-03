@@ -130,9 +130,7 @@ class DatasetBuilder:
                     .rename("_".join(column_pair) + "_change")
                 )
 
-            inner_changes = pd.concat(inner_changes, axis=1).reindex(
-                returns_1320m.index
-            )
+            inner_changes = pd.concat(inner_changes, axis=1)
 
             inner_changes_shift_120m = (
                 inner_changes.shift(120)
@@ -144,6 +142,8 @@ class DatasetBuilder:
                     }
                 )
             )
+
+            inner_changes = inner_changes.dropna().reindex(returns_1320m.index)
 
             return (
                 pd.concat(
