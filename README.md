@@ -119,11 +119,11 @@ Binance future trader deals in multiple cryptocurrencies simultaneously. In defa
 The results below are after the commission was paid to the exchange.
 Backtesting setting `Commisions: {"entry": 0.04%, "exit": 0.02% | 0.04%, "spread": 0.04%}`
 ```
-trade_winning_ratio    0.666356
-trade_sharpe_ratio     1.783051
-trade_avg_return       0.001915
-max_drawdown          -0.206087
-total_return           1.509609
+trade_winning_ratio    0.707673
+trade_sharpe_ratio     2.567470
+trade_avg_return       0.002328
+max_drawdown          -0.186144
+total_return           3.945273
 ```
 ![Performance4](images/performance4.png)
 
