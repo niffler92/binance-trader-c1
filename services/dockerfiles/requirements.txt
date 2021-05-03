@@ -12,6 +12,6 @@ scikit-learn==0.23.2
 tabulate
 sqlalchemy
 psycopg2-binary
-ccxt==1.42.18
+ccxt==1.49.32
 werkzeug
 fancytable
