@@ -106,8 +106,8 @@ Binance future trader deals in multiple cryptocurrencies simultaneously. In defa
  - Based on DenseNet.
  - Add Squeeze and Excitation block before transition block
  - Add Self-Attention block before transition block
- - Use Activation function as SELU. selectable [Mish, tanhexp]
- - Use Dropout block as Combine(AlphaDropout, SpatialDropout)
+ - Use Activation function as tanhexp. selectable [Mish, SeLU]
+ - Use Dropout concept as Combine(Dropblock, SpatialDropout)
    - Dropout not only for time-series, but also for channels.
 ### Performance
 #### Model performance
