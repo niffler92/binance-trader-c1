@@ -46,14 +46,14 @@ MODEL_CONFIG = {
     "load_strict": False,
     "model_name": "BackboneV1",
     "model_params": {
-        "in_channels": 84,
+        "in_channels": 86,
         "n_blocks": 5,
-        "n_block_layers": 8,
+        "n_block_layers": 10,
         "growth_rate": 12,
         "dropout": 0.1,
         "channel_reduction": 0.5,
-        "activation": "selu",
-        "normalization": None,
+        "activation": "tanhexp",
+        "normalization": "bn",
         "seblock": True,
         "sablock": True,
     },
@@ -116,7 +116,7 @@ class BasicPredictor:
             )
             self.optimizer = self._build_optimizer()
             self.criterion = self._build_criterion()
-            self.binary_cross_entropy = CRITERIONS["bce"]().to(self.device)
+            self.binary_criterion = CRITERIONS["bce"]().to(self.device)
 
             # Store params
             self._copy_dataset_artifacts()

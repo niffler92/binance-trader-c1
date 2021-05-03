@@ -37,14 +37,14 @@ MODEL_CONFIG = {
     "load_strict": False,
     "model_name": "BackboneV1",
     "model_params": {
-        "in_channels": 84,
+        "in_channels": 86,
         "n_blocks": 5,
-        "n_block_layers": 8,
+        "n_block_layers": 10,
         "growth_rate": 12,
         "dropout": 0.1,
         "channel_reduction": 0.5,
-        "activation": "selu",
-        "normalization": None,
+        "activation": "tanhexp",
+        "normalization": "bn",
         "seblock": True,
         "sablock": True,
     },
@@ -103,7 +103,7 @@ class PredictorV1(BasicPredictor):
 
         # Y loss
         loss = self.criterion(pred_abs_factor, train_data_dict["Y"].view(-1).abs()) * 10
-        loss += self.binary_cross_entropy(
+        loss += self.binary_criterion(
             pred_sign_factor, (train_data_dict["Y"].view(-1) >= 0) * 1.0
         )
 
@@ -125,7 +125,7 @@ class PredictorV1(BasicPredictor):
 
         # Y loss
         loss = self.criterion(pred_abs_factor, test_data_dict["Y"].view(-1).abs()) * 10
-        loss += self.binary_cross_entropy(
+        loss += self.binary_criterion(
             pred_sign_factor, (test_data_dict["Y"].view(-1) >= 0) * 1.0
         )
 

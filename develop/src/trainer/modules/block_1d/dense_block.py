@@ -4,6 +4,7 @@ import torch.nn.functional as F
 from .norms import NORMS
 from .seblock import SEBlock
 from .self_attention import SelfAttention1d
+from .dropblock import DropBlock1D
 from trainer.modules import acts
 
 
@@ -57,7 +58,9 @@ class BottleneckBlock(nn.Module):
                 *[nn.AlphaDropout(dropout / 5), nn.Dropout2d(dropout)]
             )
         else:
-            self.dropout = nn.Sequential(*[nn.Dropout(dropout), nn.Dropout2d(dropout)])
+            self.dropout = nn.Sequential(
+                *[DropBlock1D(block_size=3, drop_prob=dropout), nn.Dropout2d(dropout)]
+            )
 
         # Optional blocks
         self.seblock = None
@@ -114,7 +117,9 @@ class TransitionBlock(nn.Module):
                 *[nn.AlphaDropout(dropout / 5), nn.Dropout2d(dropout)]
             )
         else:
-            self.dropout = nn.Sequential(*[nn.Dropout(dropout), nn.Dropout2d(dropout)])
+            self.dropout = nn.Sequential(
+                *[DropBlock1D(block_size=3, drop_prob=dropout), nn.Dropout2d(dropout)]
+            )
 
     def forward(self, x: torch.Tensor):
         out = self.conv(self.dropout(self.act(self.norm(x))))
