@@ -26,7 +26,7 @@ CONFIG = {
     "query_min_start_dt": "2018-06-01",
 }
 OHLC = ["open", "high", "low", "close"]
-
+OHLC_COMBINATIONS = list(combinations(OHLC, 2))
 HOUR_TO_8CLASS = {idx: idx // 3 for idx in range(24)}
 
 
@@ -109,7 +109,7 @@ class DatasetBuilder:
             ).clip(-10, 10)
 
             inner_changes = []
-            for column_pair in sorted(list(combinations(OHLC, 2))):
+            for column_pair in sorted(OHLC_COMBINATIONS):
                 inner_changes.append(
                     rawdata_row[list(column_pair)]
                     .pct_change(1, axis=1, fill_method=None)[column_pair[-1]]
@@ -145,8 +145,8 @@ class DatasetBuilder:
                     ],
                     axis=1,
                 )
-                .sort_index()
                 .dropna()
+                .sort_index()
             )
 
         else:
@@ -164,7 +164,7 @@ class DatasetBuilder:
                 index=rawdata_row.index,
             ).rename(columns={idx: f"8class_{idx}" for idx in range(8)})
 
-            return pd.concat([volume_exists, hours,], axis=1).sort_index().dropna()
+            return pd.concat([volume_exists, hours,], axis=1).dropna().sort_index()
 
     def build_features(self, rawdata):
         features = {}
