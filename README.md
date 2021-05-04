@@ -111,6 +111,15 @@ Binance future trader deals in multiple cryptocurrencies simultaneously. In defa
    - Dropout not only for time-series, but also for channels.
 ### Performance
 #### Model performance
+We display the binary accuracy on levels of each factors.
+- The levels are 10 quantiles which computed by insample-outputs of each factor(predictions, abs(predictions), probability).
+
+The outputs of model are 2 factors, `1. abs(prediction), 2. probability of sign.`
+- abs(prediction) show the volatility like factor.
+  - We expect when abs(prediction) level is high, the performance is high.
+- probability show the confidence score of positive and negative.
+  - We expect when probability level is high, the performance is high
+
 ![Performance1](images/performance1.png)
 ![Performance2](images/performance2.png)
 ![Performance3](images/performance3.png)
